@@ -84,6 +84,7 @@ RUN \
 
 # Copy run.sh and make it executable
 COPY run.sh /run.sh
+RUN sed -i 's/\r$//' /run.sh
 RUN chmod a+x /run.sh
 
 # Expose port (used by Ingress)
@@ -92,9 +93,6 @@ EXPOSE 3000
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD wget -qO- http://localhost:3000/api/health || exit 1
-
-# Use CMD instead of ENTRYPOINT to let s6-overlay work
-CMD ["/run.sh"]
 
 # Home Assistant Add-on Labels
 LABEL \
@@ -108,3 +106,5 @@ LABEL \
     org.opencontainers.image.source="https://github.com/mauriceboe/TREK" \
     org.opencontainers.image.authors="mauriceboe" \
     org.opencontainers.image.version="${TREK_VERSION}"
+
+CMD [ "/run.sh" ]
