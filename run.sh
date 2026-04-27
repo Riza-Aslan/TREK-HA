@@ -1,5 +1,5 @@
 #!/usr/bin/with-contenv bashio
-set -e
+set -ex
 
 bashio::log.info "==================================================="
 bashio::log.info " Starting TREK Add-on..."
@@ -37,8 +37,8 @@ mkdir -p /app/data /app/uploads
 ln -sf /data/logs /app/data/logs 2>/dev/null || true
 ln -sf /data/uploads /app/uploads 2>/dev/null || true
 
-# Berechtigungen setzen
-chown -R node:node /app/data /app/uploads /data 2>/dev/null || true
+# Berechtigungen setzen (für den aktuellen Benutzer)
+chown -R $(id -u):$(id -g) /app/data /app/uploads /data 2>/dev/null || true
 chmod -R 755 /app/data /app/uploads /data 2>/dev/null || true
 
 # Umgebungsvariablen für TREK setzen
@@ -46,10 +46,12 @@ export PORT=${INGRESS_PORT}
 export NODE_ENV=production
 
 bashio::log.info "Starting TREK server on port ${PORT}..."
+bashio::log.info "Working directory: $(pwd)"
 
 # Arbeitsverzeichnis setzen
 cd /app
+bashio::log.info "Changed to directory: $(pwd)"
 
-# TREK starten (mit dumb-init und su-exec für proper signal handling)
-# Der Befehl entspricht dem Original Dockerfile
-exec dumb-init -- su-exec node node --import tsx src/index.ts
+# TREK starten - exec ersetzt den aktuellen Prozess
+# Kein su-exec, kein dumb-init - läuft direkt im Container
+exec node --import tsx src/index.ts
