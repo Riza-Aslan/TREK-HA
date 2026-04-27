@@ -1,9 +1,8 @@
 # TREK Home Assistant Add-on Dockerfile
-ARG BUILD_FROM
+ARG BUILD_FROM="ghcr.io/home-assistant/amd64-base:latest"
 FROM $BUILD_FROM
 
 # Arguments
-ARG NODE_VERSION=22.17.0
 ARG TREK_VERSION="v3.0.10"
 
 # Environment variables
@@ -11,7 +10,7 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV APP_VERSION=${TREK_VERSION}
 
-# Install system dependencies and build tools
+# Install system dependencies, Node.js and build tools
 RUN \
     apk add --no-cache \
         bash \
@@ -25,23 +24,8 @@ RUN \
         g++ \
         dumb-init \
         su-exec \
-    && \
-    # Install Node.js (architecture-aware)
-    if [ "$(uname -m)" = "x86_64" ]; then \
-        NODE_ARCH="x64"; \
-    elif [ "$(uname -m)" = "aarch64" ]; then \
-        NODE_ARCH="arm64"; \
-    else \
-        echo "Unsupported architecture: $(uname -m)"; exit 1; \
-    fi \
-    && \
-    echo "Installing Node.js ${NODE_VERSION} for architecture: ${NODE_ARCH}" \
-    && \
-    curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${NODE_ARCH}-musl.tar.xz" -o /tmp/node.tar.xz \
-    && \
-    tar -xJf /tmp/node.tar.xz -C /usr/local --strip-components=1 \
-    && \
-    rm /tmp/node.tar.xz \
+        nodejs \
+        npm \
     && \
     node --version \
     && \
