@@ -106,5 +106,3 @@ LABEL \
     org.opencontainers.image.source="https://github.com/mauriceboe/TREK" \
     org.opencontainers.image.authors="mauriceboe" \
     org.opencontainers.image.version="${TREK_VERSION}"
-
-CMD [ "/run.sh" ]
