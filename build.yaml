@@ -1,0 +1,13 @@
+build_from:
+  aarch64: ghcr.io/home-assistant/aarch64-base:3.19
+  amd64: ghcr.io/home-assistant/amd64-base:3.19
+dockerfile: Dockerfile
+args:
+  BUILD_FROM: "{build_from}"
+labels:
+  org.opencontainers.image.title: "TREK"
+  org.opencontainers.image.description: "Self-hosted travel planner for Home Assistant"
+  org.opencontainers.image.source: "https://github.com/mauriceboe/TREK"
+  org.opencontainers.image.authors: "mauriceboe"
+  org.opencontainers.image.version: "1.0.0"
+  maintainer: "TREK Community"

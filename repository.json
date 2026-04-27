@@ -1,0 +1,9 @@
+{
+  "name": "TREK HA Add-on",
+  "url": "https://github.com/mauriceboe/TREK",
+  "maintainer": "TREK Community",
+  "description": "Home Assistant Add-on für das TREK Projekt - Ein selbst-gehosteter, kollaborativer Reiseplaner mit Karten, Budgets, Packlisten und mehr.",
+  "addons": [
+    "config.yaml"
+  ]
+}

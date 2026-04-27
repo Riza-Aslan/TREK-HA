@@ -1,0 +1,127 @@
+name: Build TREK HA Add-on
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'config.yaml'
+      - 'build.yaml'
+      - 'Dockerfile'
+      - 'run.sh'
+      - '.github/workflows/builder.yaml'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+  schedule:
+    # Wöchentliches Rebuild jeden Sonntag um 3:00 UTC
+    - cron: '0 3 * * 0'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/trek-ha
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  prepare:
+    name: Prepare Version
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Get version from config.yaml
+        id: version
+        run: |
+          VERSION=$(grep '^version:' config.yaml | sed 's/version: *//' | tr -d '"')
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Detected version: ${VERSION}"
+
+  build:
+    name: Build ${{ matrix.arch }}
+    needs: prepare
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: aarch64
+            base_image: ghcr.io/home-assistant/aarch64-base:3.19
+            platform: linux/arm64
+          - arch: amd64
+            base_image: ghcr.io/home-assistant/amd64-base:3.19
+            platform: linux/amd64
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.arch }}
+          tags: |
+            type=raw,value=latest
+            type=raw,value=${{ needs.prepare.outputs.version || 'latest' }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: ${{ matrix.platform }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BUILD_FROM=${{ matrix.base_image }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  update-readme:
+    name: Update README with version
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.prepare.outputs.version != ''
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update README version badge
+        run: |
+          VERSION="${{ needs.prepare.outputs.version }}"
+          echo "Updating README with version ${VERSION}"
+          # Hier könnte man das README automatisch aktualisieren
+          # z.B. Version badge oder Text ersetzen
+          echo "Version ${VERSION} built and pushed successfully!"
