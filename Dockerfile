@@ -93,8 +93,8 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD wget -qO- http://localhost:3000/api/health || exit 1
 
-# Entrypoint - run.sh will handle the startup
-ENTRYPOINT ["/run.sh"]
+# Use CMD instead of ENTRYPOINT to let s6-overlay work
+CMD ["/run.sh"]
 
 # Home Assistant Add-on Labels
 LABEL \
