@@ -28,12 +28,5 @@ options:
   timezone: "Europe/Berlin"
   encryption_key: ""
 schema:
-  timezone:
-    type: str
-    description: "Timezone for TREK"
-    default: "Europe/Berlin"
-  encryption_key:
-    type: str
-    description: "Encryption key (leave empty to auto-generate on first run)"
-    default: ""
-    optional: true
+  timezone: str
+  encryption_key: str?
