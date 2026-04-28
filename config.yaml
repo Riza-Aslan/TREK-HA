@@ -14,6 +14,7 @@ init: false
 ingress: true
 ingress_port: 3000
 ingress_entry: /
+host_network: true
 panel_icon: mdi:airplane
 panel_title: "TREK"
 panel_admin: false
