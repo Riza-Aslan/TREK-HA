@@ -37,6 +37,9 @@ RUN npm install -g tsx
 # Set working directory
 WORKDIR /app
 
+# Install tsx locally as well (required for node --import tsx to work reliably)
+RUN npm install tsx
+
 # Clone TREK repository and setup server
 RUN \
     echo "Cloning TREK ${TREK_VERSION}..." \

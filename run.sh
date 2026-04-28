@@ -54,4 +54,6 @@ bashio::log.info "Changed to directory: $(pwd)"
 
 # TREK starten - exec ersetzt den aktuellen Prozess
 # Kein su-exec, kein dumb-init - läuft direkt im Container
+# tsx wird lokal in node_modules installiert, daher PATH erweitern
+export PATH="/app/node_modules/.bin:$PATH"
 exec node --import tsx src/index.ts
