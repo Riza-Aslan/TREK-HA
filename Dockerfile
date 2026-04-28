@@ -85,10 +85,13 @@ RUN \
     && \
     ln -sf /data/uploads /app/uploads 2>/dev/null || true
 
-# Copy run.sh and make it executable
-COPY run.sh /run.sh
-RUN sed -i 's/\r$//' /run.sh
-RUN chmod a+x /run.sh
+# Copy run.sh as s6-overlay service (required for HA base images 3.x with s6-overlay v3)
+RUN mkdir -p /etc/s6-overlay/s6-rc.d/trek /etc/s6-overlay/s6-rc.d/user/contents.d
+COPY run.sh /etc/s6-overlay/s6-rc.d/trek/run
+RUN echo "longrun" > /etc/s6-overlay/s6-rc.d/trek/type \
+    && touch /etc/s6-overlay/s6-rc.d/user/contents.d/trek \
+    && sed -i 's/\r$//' /etc/s6-overlay/s6-rc.d/trek/run \
+    && chmod a+x /etc/s6-overlay/s6-rc.d/trek/run
 
 # Expose port (used by Ingress)
 EXPOSE 3000
